@@ -1,0 +1,9 @@
+requests
+pandas
+numpy
+tqdm
+openpyxl
+scikit-learn
+matplotlib
+PyQt5
+nltk
