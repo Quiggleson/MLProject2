@@ -1,46 +1,17 @@
-import requests
-import sys
-from pathlib import Path
-import csv
-import pandas as pd
-import numpy as np
-from tqdm import tqdm
-import subprocess
-import json
-# Import necessary libraries
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.naive_bayes import MultinomialNB
-from sklearn.metrics import accuracy_score, classification_report
-from sklearn.ensemble import RandomForestClassifier
-import matplotlib.pyplot as plt
-import matplotlib.pyplot as plt
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
-from nltk.sentiment import SentimentIntensityAnalyzer
-from collections import Counter
-import nltk
 import re
-from nltk.corpus import stopwords
-from nltk.stem import PorterStemmer, WordNetLemmatizer
-from sklearn.feature_extraction.text import TfidfVectorizer
+import json
+import requests
+import subprocess
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from nltk.sentiment import SentimentIntensityAnalyzer
+from tqdm import tqdm
 from collections import Counter
 from nltk.tokenize import word_tokenize
-import nltk
-
+from nltk.corpus import stopwords
 from nltk.sentiment import SentimentIntensityAnalyzer
 from nltk.stem import PorterStemmer, WordNetLemmatizer
-from nltk.tokenize import word_tokenize
-from nltk.corpus import stopwords
-import matplotlib.pyplot as plt
-import pandas as pd
+from nltk.sentiment import SentimentIntensityAnalyzer
 
 def writeitemIds(url, headers, body):
     itemids = []
@@ -118,58 +89,6 @@ def itemidstoresults(itemids):
 
     df.to_excel('./data.xlsx', index=False)
 
-def process(df, max_features=2):
-
-    # Drop null
-    df = df.dropna(subset=['review', 'Brand'])
-
-    # Split the data into training and testing sets
-    train_data, test_data = train_test_split(df, test_size=0.3, random_state=42)
-
-    # Create a TF-IDF vectorizer
-    tfidf_vectorizer = TfidfVectorizer(max_features=max_features, stop_words='english')
-
-    # Fit and transform the training data
-    X_train_tfidf = tfidf_vectorizer.fit_transform(train_data['review'])
-
-    # Transform the test data
-    X_test_tfidf = tfidf_vectorizer.transform(test_data['review'])
-
-    print(f'vectorizer:\n{X_train_tfidf}')
-
-    # Create a Random Forest classifier
-    model = RandomForestClassifier(n_estimators=60, random_state=42)
-
-    # Train the model
-    model.fit(X_train_tfidf, train_data['Brand'])
-
-    # Make predictions on the test set
-    predictions = model.predict(X_test_tfidf)
-
-    # Evaluate the model
-    accuracy = accuracy_score(test_data['Brand'], predictions)
-    print(f"Accuracy: {accuracy:.2f}")
-
-    return accuracy
-
-    # Print classification report
-    print(classification_report(test_data['Brand'], predictions))
-    # # Create a machine learning model (e.g., Naive Bayes)
-    # model = MultinomialNB()
-
-    # # Train the model
-    # model.fit(X_train_tfidf, train_data['Brand'])
-
-    # # Make predictions on the test set
-    # predictions = model.predict(X_test_tfidf)
-
-    # # Evaluate the model
-    # accuracy = accuracy_score(test_data['Brand'], predictions)
-    # print(f"Accuracy: {accuracy:.2f}")
-
-    # # Print classification report
-    # print(classification_report(test_data['Brand'], predictions))
-
 def ratingbarchart(df):
     # Count the occurrences of each rating
     rating_counts = df['stars'].value_counts().sort_index()
@@ -213,53 +132,6 @@ def preprocess_text(text):
         words = [ps.stem(lemmatizer.lemmatize(word)) for word in words if word not in stop_words]
         return ' '.join(words)
 
-def process_sentiment_and_plot(df, max_features=2):
-    # Drop null
-    df = df.dropna(subset=['review', 'Brand'])
-
-    df['review'] = df['review'].apply(preprocess_text)
-
-    # Split the data into training and testing sets
-    train_data, test_data = train_test_split(df, test_size=0.3, random_state=42)
-
-    # Create a TF-IDF vectorizer
-    tfidf_vectorizer = TfidfVectorizer(max_features=max_features, stop_words='english')
-
-    # Fit and transform the training data
-    X_train_tfidf = tfidf_vectorizer.fit_transform(train_data['review'])
-
-    # Transform the test data
-    X_test_tfidf = tfidf_vectorizer.transform(test_data['review'])
-
-    # Create a Random Forest classifier
-    model = RandomForestClassifier(n_estimators=60, random_state=42)
-
-    # Train the model
-    model.fit(X_train_tfidf, train_data['Brand'])
-
-    # Make predictions on the test set
-    predictions = model.predict(X_test_tfidf)
-
-    # Evaluate the model
-    accuracy = accuracy_score(test_data['Brand'], predictions)
-    print(f"Accuracy: {accuracy:.2f}")
-
-    # Perform sentiment analysis using NLTK
-    sia = SentimentIntensityAnalyzer()
-    df['sentiment'] = df['review'].apply(lambda x: sia.polarity_scores(x)['compound'])
-
-    # Separate positive and negative reviews
-    positive_reviews = df[df['sentiment'] > 0]  
-    negative_reviews = df[df['sentiment'] < 0]
-
-    # Plot positive reviews
-    plot_most_used_words(positive_reviews, 'Positive Sentiment')
-
-    # Plot negative reviews
-    plot_most_used_words(negative_reviews, 'Negative Sentiment', color='red')
-
-    return accuracy
-
 def plot_most_used_words(df, title, color='blue', top_n=10):
     # Tokenize and count words
     words = ' '.join(df['review']).split()
@@ -298,7 +170,6 @@ def cleaning(df, sortreviews = False):
         print(sorted_df)
 
     return df_cleaned
-
 
 def analyze_sentiment(text):
     sid = SentimentIntensityAnalyzer()
@@ -392,7 +263,6 @@ def reviewbased(df, brand_column="Brand", review_column="review", rating_column=
     # Show the plots
     plt.show()
 
-
 url = "https://www.homedepot.com/federation-gateway/graphql?opname=dpdSearchModel"
 headers = {
         "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0",
@@ -422,7 +292,9 @@ r = requests.post(url=url, headers=headers, json=body)
 # df = pd.read_csv('./itemids.csv', index_col=0)
 # itemidstoresults(df)
 
-df = pd.read_excel('./backup_data.xlsx', header=0)
+df = pd.read_excel('./data.xlsx', header=0)
+
+print(f'size of df: {df}')
 
 # ratingbarchart(df)
 # brandbarchart(df)
@@ -432,6 +304,7 @@ df = pd.read_excel('./backup_data.xlsx', header=0)
 # nltk.download('vader_lexicon')
 # nltk.download('stopwords')
 # nltk.download('wordnet')
+# nltk.download('punkt)
 
 # accuracy = process_sentiment_and_plot(df)
 
@@ -449,10 +322,4 @@ subset_df = df[df['Brand'].isin(brand_subset)]
 # Test the function with the subset DataFrame
 # analyze_and_plot_brand_sentiment(subset_df)
 
-reviewbased(subset_df)
-
-# Idea for review based
-# Group by brand
-# For each brand, 
-    # Pretty much populate positive_reviews and negative_reviews like this
-    # And do the same as the other function
+# reviewbased(subset_df)
